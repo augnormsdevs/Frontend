@@ -6,6 +6,7 @@ interface Props {
 
 export const AppsComponent = (props: Props) => {
   const { selectedApp, accesslevelname } = props;
+  console.log(accesslevelname)
   return (
     <div
       className="

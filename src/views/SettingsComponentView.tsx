@@ -94,7 +94,7 @@ export const SettingsComponent = () => {
         );
 
         if (response) {
-          let data = response?.data?.data
+          const data = response?.data?.data
           setListallGallery(data);
         } 
       } catch (error: any) {
@@ -120,7 +120,7 @@ export const SettingsComponent = () => {
           console.log(response?.data?.data);
         }
 
-      }catch(error:any){
+      }catch(error){
         console.error(error);
       }
     }
