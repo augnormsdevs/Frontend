@@ -75,7 +75,7 @@ export const SettingsComponent = () => {
       );
       setAboutcontent(respone?.data?.data[0].history);
       setAboutcontentid(respone?.data?.data[0].id)
-    } catch (error: any) {
+    } catch (error) {
       console.error(error.message);
     } finally {
       setIsLoading(false);
@@ -97,7 +97,7 @@ export const SettingsComponent = () => {
           const data = response?.data?.data
           setListallGallery(data);
         } 
-      } catch (error: any) {
+      } catch (error) {
         console.error(error);
       }
     };
