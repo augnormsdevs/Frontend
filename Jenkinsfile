@@ -30,7 +30,7 @@ pipeline {
 
                 // 3. Conditionally fail
                 if (result != 0) {
-                    unstable("Package.json differs from reference")  // Or 'error()' for hard failure
+                    unstable("Package.json differs from reference")  // Or 'error()' for hard fails
                 }
             }
         }
