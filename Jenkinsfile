@@ -29,10 +29,23 @@ pipeline {
                         returnStatus: true
                     )
 
-                    // 3. Conditionally failure
+                    // 3. Conditionally fail
                     if (result != 0) {
                         unstable("Package.json differs from reference")  // Or 'error()' for hard fails
                     }
+                }
+            }
+        }
+        
+        stage('Test Status Reporting') {
+            steps {
+                script {
+                    // Manually send a test status
+                    updateGitHubCommitStatus(
+                        state: 'success', 
+                        context: 'jenkins/package-validation',
+                        description: 'Package validation check'
+                    )
                 }
             }
         }
