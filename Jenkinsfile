@@ -1,5 +1,6 @@
 pipeline {
     agent any
+
     stages {
         stage('Validate package.json') {
             steps {
@@ -7,7 +8,7 @@ pipeline {
                     dir('packages_validate') {
                         git(
                             url: 'https://github.com/augnormsdevs/packages_validate.git',
-                            credentialsId: 'github_token', // Updated credential ID
+                            credentialsId: 'github_credentials', // Use the correct credentials ID
                             branch: 'main'
                         )
                     }
@@ -20,19 +21,21 @@ pipeline {
                         ''',
                         returnStatus: true
                     )
+
                     if (result != 0) {
-                        unstable("Package.json differs from reference")
+                        unstable("package.json differs from the reference")
                     }
                 }
             }
         }
     }
+
     post {
         always {
-            withCredentials([string(credentialsId: 'github_token', variable: 'GITHUB_TOKEN')]) {
+            withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
                 sh """
                     curl -sS -X POST \
-                    -H "Authorization: token \$GITHUB_TOKEN" \
+                    -u "$GITHUB_USER:$GITHUB_TOKEN" \
                     -H "Accept: application/vnd.github.v3+json" \
                     "https://api.github.com/repos/augnormsdevs/Frontend/statuses/${env.GIT_COMMIT}" \
                     -d '{
