@@ -48,7 +48,7 @@ pipeline {
                         } finally {
                             def conclusion = (validationResult == 0) ? 'SUCCESS' : 'FAILURE'
 
-                            publishChecks name: 'package-validation',
+                            githubNotify context: 'package-validation',
                                           conclusion: conclusion,
                                           output: [
                                               title: 'Package Validation',
