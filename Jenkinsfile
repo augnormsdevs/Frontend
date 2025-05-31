@@ -1,25 +1,25 @@
 
-
-
 def updateGitHubStatus(String state, String description) {
-    // Validate and normalize state
-    def validState = ['success', 'failure', 'pending', 'error'].contains(state.toLowerCase()) ? 
-        state.toLowerCase() : 'error'
-    
-    withCredentials([string(credentialsId: 'github_token', variable: 'GITHUB_TOKEN')]) {
-        sh """
-            curl -sS -X POST \
-            -H "Authorization: token \$GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/augnormsdevs/Frontend/statuses/${env.GIT_COMMIT}" \
-            -d '{
-                "state": "${validState}",
-                "target_url": "${env.BUILD_URL}",
-                "description": "${description.take(140)}",
-                "context": "${env.STATUS_CONTEXT}"
-            }'
-        """
+  // Validate and normalize state
+ def validState = ['success', 'failure', 'pending', 'error'].contains(state.toLowerCase()) ? 
+        state.toLowerCase() : 'error'  
+
+  withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+    withEnv(["TOKEN=$GITHUB_TOKEN", "USER=$GITHUB_USER"]) {
+      sh '''#!/bin/bash
+        curl -sS -X POST \
+          -u "$USER:$TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/augnormsdevs/Frontend/statuses/${GIT_COMMIT}" \
+          -d "{
+            \\"state\\": \\"${validState}\\",
+            \\"target_url\\": \\"${BUILD_URL}\\",
+            \\"description\\": \\"${description}\\",
+            \\"context\\": \\"${STATUS_CONTEXT}\\"
+          }"
+      '''
     }
+  }
 }
 
 pipeline {
