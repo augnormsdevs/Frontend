@@ -124,12 +124,12 @@ export const AccountComponent = (prop: Prop) => {
   };
 
   const handleChangeAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
+    const value = e.target.value;
     setAmount(value);
   };
 
   const handleChangeDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
+    const value = e.target.value;
     setDate(value);
   };
 
