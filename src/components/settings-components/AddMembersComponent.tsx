@@ -12,6 +12,7 @@ import { SuccessBlock } from "../reusables/SuccessBlock";
 import { ErrorBlock } from "../reusables/ErrorBlock";
 import { Encrypt } from "../helperfunctions/functions";
 import { DeleteDialogue } from "../reusables/DeleteDialogue";
+import { InputItem } from "../../Interfaces/usersInterface";
 
 interface transformData {
   nameofcompany: string;
@@ -205,7 +206,7 @@ export const AddMembersComponent = (props: Prop) => {
   };
 
   const handleSlice = () => {
-    const chunks = [];
+    const chunks: InputItem[][] = [];
     for (let i = 0; i < inputs?.length; i += 4) {
       const chunk = inputs.slice(i, i + 4);
       chunks.push(chunk);

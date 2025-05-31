@@ -40,3 +40,11 @@ export interface DecodedToken {
   exp: number;
   image:string;
 }
+
+export interface InputItem {
+  id: string;
+  label: string;
+  type: string;
+  placeholder: string;
+  value: string;
+}

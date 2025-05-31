@@ -75,7 +75,7 @@ export const SettingsComponent = () => {
       );
       setAboutcontent(respone?.data?.data[0].history);
       setAboutcontentid(respone?.data?.data[0].id)
-    } catch (error) {
+    } catch (error:any) {
       console.error(error.message);
     } finally {
       setIsLoading(false);
