@@ -131,6 +131,46 @@ pipeline {
                 archiveArtifacts artifacts: 'dist/**/*', fingerprint: true
             }
         }
-    
+
+        stage('Push to Docker Hub (simulating ECR)') {
+            environment {
+                STATUS_CONTEXT = 'jenkins/docker-push'
+            }
+            steps {
+                script {
+                    updateGitHubStatus('pending', 'Pushing Docker image to Docker Hub')
+
+                    // Use your Docker Hub credential ID here
+                    withCredentials([usernamePassword(credentialsId: 'Docker-hub-credentials', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+                        sh '''
+                          echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                          docker build -t augustine963/ekissi_frontend:latest .
+                          docker push augustine963/ekissi_frontend:latest
+                        '''
+                    }
+                }
+            }
+            post {
+                success { updateGitHubStatus('success', 'Docker image pushed successfully') }
+                failure { updateGitHubStatus('error', 'Docker image push failed') }
+            }
+        }
+        
+        stage('Deploy simulated to ECR') {
+            environment {
+                STATUS_CONTEXT = 'jenkins/deploy'
+            }
+            steps {
+                script {
+                    updateGitHubStatus('pending', 'Deploying application')
+                    sh 'bash /home/augnorms/deploy.sh'
+                }
+            }
+            post {
+                success { updateGitHubStatus('success', 'Deployment completed') }
+                failure { updateGitHubStatus('error', 'Deployment failed') }
+            }
+        }
+
     }
 }
