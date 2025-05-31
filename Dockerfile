@@ -16,6 +16,7 @@ RUN npm run build
 
 # Use nginx to serve the static files
 FROM nginx:stable-alpine
+
 COPY --from=0 /app/dist /usr/share/nginx/html
 
 EXPOSE 80
