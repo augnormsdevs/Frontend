@@ -4,7 +4,7 @@ def updateGitHubStatus(String state, String description) {
  def validState = ['success', 'failure', 'pending', 'error'].contains(state.toLowerCase()) ? 
         state.toLowerCase() : 'error'  
 
-  withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+  withCredentials([usernamePassword(credentialsId: 'cec555a4-7bcd-48e3-b491-3cdcff3d3ff1', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
     withEnv(["TOKEN=$GITHUB_TOKEN", "USER=$GITHUB_USER"]) {
       sh """#!/bin/bash
         curl -sS -X POST \\
@@ -104,7 +104,7 @@ pipeline {
 
         stage('Prepare .env file') {
             steps {
-                configFileProvider([configFile(fileId: '241b7da5-fbbf-425b-a0c1-16aff5cb9573', variable: 'MY_CONFIG')]) {
+                configFileProvider([configFile(fileId: '46c39496-c1b0-4b03-b2c5-2d2ec620fff0', variable: 'MY_CONFIG')]) {
                     sh 'cat $MY_CONFIG > .env'
                 }
             }
@@ -141,7 +141,7 @@ pipeline {
                     updateGitHubStatus('pending', 'Pushing Docker image to Docker Hub')
 
                     // Use your Docker Hub credential ID here
-                   withCredentials([usernamePassword(credentialsId: 'e878e5c2-dc2b-49a5-b399-29f5c530294d', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                   withCredentials([usernamePassword(credentialsId: 'dbfbbbf6-22d0-496b-a2ec-b943f6669e23', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker build -t augustine963/ekissi_frontend:latest .
@@ -174,5 +174,5 @@ pipeline {
         }
 
     }
-    
+
 }
