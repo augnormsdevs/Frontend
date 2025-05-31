@@ -101,5 +101,30 @@ pipeline {
                 failure { updateGitHubStatus('error', 'Linting failed') }
             }
         }
+
+        stage('Prepare .env file') {
+            steps {
+                configFileProvider([configFile(fileId: '241b7da5-fbbf-425b-a0c1-16aff5cb9573', variable: 'MY_CONFIG')]) {
+                    sh 'cat $MY_CONFIG > .env'
+                }
+            }
+        }
+
+       stage('Run Build') {
+            environment {
+                STATUS_CONTEXT = 'jenkins/build'
+            }
+            steps {
+                script {
+                    updateGitHubStatus('pending', 'Build in progress')
+                    sh 'npm run build' 
+                }
+            }
+            post {
+                success { updateGitHubStatus('success', 'Build completed') }
+                failure { updateGitHubStatus('error', 'Build failed') }
+            }
+        }
+
     }
 }
