@@ -141,13 +141,14 @@ pipeline {
                     updateGitHubStatus('pending', 'Pushing Docker image to Docker Hub')
 
                     // Use your Docker Hub credential ID here
-                    withCredentials([usernamePassword(credentialsId: 'e878e5c2-dc2b-49a5-b399-29f5c530294d', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                   withCredentials([usernamePassword(credentialsId: 'e878e5c2-dc2b-49a5-b399-29f5c530294d', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh '''
-                          echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                          docker build -t augustine963/ekissi_frontend:latest .
-                          docker push augustine963/ekissi_frontend:latest
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker build -t augustine963/ekissi_frontend:latest .
+                        docker push augustine963/ekissi_frontend:latest
                         '''
-                    }
+                   }
+
                 }
             }
             post {
