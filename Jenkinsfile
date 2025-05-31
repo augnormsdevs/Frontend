@@ -1,46 +1,43 @@
 
-def updateGitHubStatus(String state, String description) {
-  withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
-    withEnv(["TOKEN=$GITHUB_TOKEN", "USER=$GITHUB_USER"]) {
-      sh '''#!/bin/bash
-        curl -sS -X POST \
-          -u "$USER:$TOKEN" \
-          -H "Accept: application/vnd.github.v3+json" \
-          "https://api.github.com/repos/augnormsdevs/Frontend/statuses/${GIT_COMMIT}" \
-          -d "{
-            \\"state\\": \\"${state}\\",
-            \\"target_url\\": \\"${BUILD_URL}\\",
-            \\"description\\": \\"${description}\\",
-            \\"context\\": \\"${STATUS_CONTEXT}\\"
-          }"
-      '''
-    }
-  }
-}
 
+
+def updateGitHubStatus(String state, String description) {
+    // Validate and normalize state
+    def validState = ['success', 'failure', 'pending', 'error'].contains(state.toLowerCase()) ? 
+        state.toLowerCase() : 'error'
+    
+    withCredentials([string(credentialsId: 'github_token', variable: 'GITHUB_TOKEN')]) {
+        sh """
+            curl -sS -X POST \
+            -H "Authorization: token \$GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/augnormsdevs/Frontend/statuses/${env.GIT_COMMIT}" \
+            -d '{
+                "state": "${validState}",
+                "target_url": "${env.BUILD_URL}",
+                "description": "${description.take(140)}",
+                "context": "${env.STATUS_CONTEXT}"
+            }'
+        """
+    }
+}
 
 pipeline {
     agent any
 
     stages {
         stage('Checkout') {
-            // This stage checks out the code from the repository.
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
+
         stage('Validate package.json') {
-            // This stage validates the package.json file against a reference version stored in a GitHub repository.
-            // It checks out the reference package.json and compares it with the current one.
             environment {
                 STATUS_CONTEXT = 'jenkins/package-validation'
             }
-
             steps {
                 script {
-
                     updateGitHubStatus('pending', 'Package validation in progress')
-
+                    
                     dir('packages_validate') {
                         git(
                             url: 'https://github.com/augnormsdevs/packages_validate.git',
@@ -51,7 +48,6 @@ pipeline {
 
                     def result = sh(
                         script: '''
-                            echo "Comparing packages..."
                             [ ! -f packages_validate/package.json ] && exit 1
                             diff -u packages_validate/package.json package.json || true
                         ''',
@@ -63,49 +59,23 @@ pipeline {
                     }
                 }
             }
-            
-            // Post actions to update GitHub status based on the result of the validation
-            // This will run after the stage completes, regardless of success or failure
             post {
-                success {
-                    script {
-                        updateGitHubStatus('success', 'Package validation passed')
-                    }
-                }
-                unstable {
-                    script {
-                        updateGitHubStatus('failure', 'Package validation differs')
-                    }
-                }
-                failure {
-                    script {
-                        updateGitHubStatus('error', 'Package validation failed')
-                    }
-                }
+                success { updateGitHubStatus('success', 'Validation passed') }
+                unstable { updateGitHubStatus('failure', 'Validation differences found') }
+                failure { updateGitHubStatus('error', 'Validation failed') }
             }
         }
 
         stage('Install Dependencies') {
-            // This stage installs the necessary dependencies for the project.
             steps {
                 script {
                     updateGitHubStatus('pending', 'Installing dependencies')
-
-                    // Install dependencies using npm
                     sh 'npm install'
                 }
             }
             post {
-                success {
-                    script {
-                        updateGitHubStatus('success', 'Dependencies installed successfully')
-                    }
-                }
-                failure {
-                    script {
-                        updateGitHubStatus('error', 'Dependency installation failed')
-                    }
-                }
+                success { updateGitHubStatus('success', 'Dependencies installed') }
+                failure { updateGitHubStatus('error', 'Installation failed') }
             }
         }
 
@@ -116,36 +86,17 @@ pipeline {
             steps {
                 script {
                     updateGitHubStatus('pending', 'Linting in progress')
-
-                    // Run the linting command
-                    def lintResult = sh(
-                        script: 'npm run lint',
-                        returnStatus: true
-                    )
-
+                    def lintResult = sh(script: 'npm run lint', returnStatus: true)
                     if (lintResult != 0) {
-                        unstable("Linting failed")
+                        unstable("Linting issues found")
                     }
                 }
             }
             post {
-                success {
-                    script {
-                        updateGitHubStatus('success', 'Linting passed')
-                    }
-                }
-                unstable {
-                    script {
-                        updateGitHubStatus('failure', 'Linting failed')
-                    }
-                }
-                failure {
-                    script {
-                        updateGitHubStatus('error', 'Linting encountered an error')
-                    }
-                }
+                success { updateGitHubStatus('success', 'Linting passed') }
+                unstable { updateGitHubStatus('failure', 'Linting issues found') }
+                failure { updateGitHubStatus('error', 'Linting failed') }
             }
         }
     }
 }
-
