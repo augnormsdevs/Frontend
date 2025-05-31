@@ -6,18 +6,18 @@ def updateGitHubStatus(String state, String description) {
 
   withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
     withEnv(["TOKEN=$GITHUB_TOKEN", "USER=$GITHUB_USER"]) {
-      sh '''#!/bin/bash
-        curl -sS -X POST \
-          -u "$USER:$TOKEN" \
-          -H "Accept: application/vnd.github.v3+json" \
-          "https://api.github.com/repos/augnormsdevs/Frontend/statuses/${GIT_COMMIT}" \
-          -d "{
-            \\"state\\": \\"${validState}\\",
-            \\"target_url\\": \\"${BUILD_URL}\\",
-            \\"description\\": \\"${description}\\",
-            \\"context\\": \\"${STATUS_CONTEXT}\\"
-          }"
-      '''
+      sh """#!/bin/bash
+        curl -sS -X POST \\
+            -u "$USER:$TOKEN" \\
+            -H "Accept: application/vnd.github.v3+json" \\
+            "https://api.github.com/repos/augnormsdevs/Frontend/statuses/${GIT_COMMIT}" \\
+            -d '{
+            "state": "${validState}",
+            "target_url": "${BUILD_URL}",
+            "description": "${description}",
+            "context": "${STATUS_CONTEXT}"
+            }'
+        """
     }
   }
 }
@@ -67,6 +67,9 @@ pipeline {
         }
 
         stage('Install Dependencies') {
+            environment {
+               STATUS_CONTEXT = 'jenkins/install-dependencies'
+            }
             steps {
                 script {
                     updateGitHubStatus('pending', 'Installing dependencies')
