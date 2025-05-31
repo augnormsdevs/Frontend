@@ -1,18 +1,21 @@
+
 def updateGitHubStatus(String state, String description) {
-    withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
-        sh """
-            curl -sS -X POST \
-            -u "$GITHUB_USER:$GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/augnormsdevs/Frontend/statuses/${env.GIT_COMMIT}" \
-            -d '{
-                "state": "${state}",
-                "target_url": "${env.BUILD_URL}",
-                "description": "${description}",
-                "context": "${env.STATUS_CONTEXT}"
-            }'
-        """
+  withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+    withEnv(["TOKEN=$GITHUB_TOKEN", "USER=$GITHUB_USER"]) {
+      sh '''#!/bin/bash
+        curl -sS -X POST \
+          -u "$USER:$TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/augnormsdevs/Frontend/statuses/${GIT_COMMIT}" \
+          -d "{
+            \\"state\\": \\"${state}\\",
+            \\"target_url\\": \\"${BUILD_URL}\\",
+            \\"description\\": \\"${description}\\",
+            \\"context\\": \\"${STATUS_CONTEXT}\\"
+          }"
+      '''
     }
+  }
 }
 
 
@@ -81,7 +84,31 @@ pipeline {
                 }
             }
         }
-        
+
+        stage('Install Dependencies') {
+            // This stage installs the necessary dependencies for the project.
+            steps {
+                script {
+                    updateGitHubStatus('pending', 'Installing dependencies')
+
+                    // Install dependencies using npm
+                    sh 'npm install'
+                }
+            }
+            post {
+                success {
+                    script {
+                        updateGitHubStatus('success', 'Dependencies installed successfully')
+                    }
+                }
+                failure {
+                    script {
+                        updateGitHubStatus('error', 'Dependency installation failed')
+                    }
+                }
+            }
+        }
+
         stage('Run Linting') {
             environment {
                 STATUS_CONTEXT = 'jenkins/linting'
