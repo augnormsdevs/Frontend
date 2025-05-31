@@ -81,7 +81,44 @@ pipeline {
                 }
             }
         }
+        
+        stage('Run Linting') {
+            environment {
+                STATUS_CONTEXT = 'jenkins/linting'
+            }
+            steps {
+                script {
+                    updateGitHubStatus('pending', 'Linting in progress')
 
+                    // Run the linting command
+                    def lintResult = sh(
+                        script: 'npm run lint',
+                        returnStatus: true
+                    )
+
+                    if (lintResult != 0) {
+                        unstable("Linting failed")
+                    }
+                }
+            }
+            post {
+                success {
+                    script {
+                        updateGitHubStatus('success', 'Linting passed')
+                    }
+                }
+                unstable {
+                    script {
+                        updateGitHubStatus('failure', 'Linting failed')
+                    }
+                }
+                failure {
+                    script {
+                        updateGitHubStatus('error', 'Linting encountered an error')
+                    }
+                }
+            }
+        }
     }
 }
 
