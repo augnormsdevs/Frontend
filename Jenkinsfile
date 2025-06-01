@@ -189,12 +189,10 @@ pipeline {
             }
             post {
                 success { 
-                    updateGitHubStatus('success', 'Deployment completed') 
-                    slackSend(color: 'good', message: "Deployment successful! Access at: http://localhost:8081")
+                    updateGitHubStatus('success', 'Deployment completed Access at:http://localhost:8081') 
                 }
                 failure { 
                     updateGitHubStatus('error', 'Deployment failed') 
-                    slackSend(color: 'danger', message: "Deployment failed! Check Jenkins logs.")
                 }
             }
         }
