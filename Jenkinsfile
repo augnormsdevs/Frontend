@@ -157,6 +157,26 @@ pipeline {
             }
         }
         
+        stage('Prepare Deploy Script') {
+            steps {
+                   writeFile file: 'deploy.sh', text: '''
+                    #!/bin/bash
+                    echo "🔄 Pulling latest image..."
+                    docker pull augustine963/ekissi_frontend:latest
+
+                    echo "🛑 Stopping existing container if running..."
+                    docker stop ekissi_frontend || true
+                    docker rm ekissi_frontend || true
+
+                    echo "🚀 Starting new container..."
+                    docker run -d --name ekissi_frontend -p 8081:80 augustine963/ekissi_frontend:latest
+
+                    echo "✅ Deployment complete. App should be running on http://localhost:8081"
+                    '''
+            }   
+                    sh 'chmod +x deploy.sh'
+        }
+        
         stage('Deploy simulated to ECR') {
             environment {
                 STATUS_CONTEXT = 'jenkins/deploy'
@@ -164,15 +184,20 @@ pipeline {
             steps {
                 script {
                     updateGitHubStatus('pending', 'Deploying application')
-                    sh 'bash /home/augnorms/deploy.sh'
+                    sh './deploy.sh'
                 }
             }
             post {
-                success { updateGitHubStatus('success', 'Deployment completed') }
-                failure { updateGitHubStatus('error', 'Deployment failed') }
+                success { 
+                    updateGitHubStatus('success', 'Deployment completed') 
+                    slackSend(color: 'good', message: "Deployment successful! Access at: http://localhost:8081")
+                }
+                failure { 
+                    updateGitHubStatus('error', 'Deployment failed') 
+                    slackSend(color: 'danger', message: "Deployment failed! Check Jenkins logs.")
+                }
             }
         }
-
     }
 
 }
