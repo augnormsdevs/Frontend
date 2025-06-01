@@ -159,7 +159,7 @@ pipeline {
         
         stage('Prepare Deploy Script') {
             steps {
-                   writeFile file: 'deploy.sh', text: '''
+                writeFile file: 'deploy.sh', text: '''
                     #!/bin/bash
                     echo "🔄 Pulling latest image..."
                     docker pull augustine963/ekissi_frontend:latest
@@ -172,11 +172,11 @@ pipeline {
                     docker run -d --name ekissi_frontend -p 8081:80 augustine963/ekissi_frontend:latest
 
                     echo "✅ Deployment complete. App should be running on http://localhost:8081"
-                    '''
-            }   
-                    sh 'chmod +x deploy.sh'
+                '''
+                sh 'chmod +x deploy.sh'
+            }
         }
-        
+ 
         stage('Deploy simulated to ECR') {
             environment {
                 STATUS_CONTEXT = 'jenkins/deploy'
