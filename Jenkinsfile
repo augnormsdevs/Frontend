@@ -25,6 +25,11 @@ def updateGitHubStatus(String state, String description) {
 pipeline {
     agent any
 
+    environment{
+        VITE_CLOUDINARY_URL = credentials("VITE_CLOUDINARY_URL")
+        VITE_ENDPOINT = credentials("VITE_ENDPOINT")
+    }
+
     stages {
         stage('Checkout') {
             steps { checkout scm }
@@ -169,7 +174,13 @@ pipeline {
                     docker rm ekissi_frontend || true
 
                     echo "🚀 Starting new container..."
-                    docker run -d --name ekissi_frontend -p 8081:80 augustine963/ekissi_frontend:latest
+                    
+                    docker run -d --name ekissi_frontend \
+                    --network ekissi_network \
+                    -e VITE_CLOUDINARY_URL="$VITE_CLOUDINARY_URL" \
+                    -e VITE_ENDPOINT="$VITE_ENDPOINT" \
+                    -p 8081:80 \
+                    augustine963/ekissi_frontend:latest
 
                     echo "✅ Deployment complete. App should be running on http://localhost:8081"
                 '''
